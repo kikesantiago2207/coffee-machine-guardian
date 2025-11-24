@@ -16,25 +16,25 @@ interface KPICardProps {
 
 const KPICard = ({ title, value, icon: Icon, description, trend, className }: KPICardProps) => {
   return (
-    <Card className={className}>
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
-        <Icon className="w-4 h-4 text-muted-foreground" />
+    <Card className={cn("bg-gradient-card shadow-md hover:shadow-lg transition-all duration-300", className)}>
+      <CardHeader className="flex flex-row items-center justify-between pb-3">
+        <CardTitle className="text-sm font-bold text-muted-foreground uppercase tracking-wide">{title}</CardTitle>
+        <Icon className="w-5 h-5 text-primary" />
       </CardHeader>
       <CardContent>
-        <div className="text-2xl font-bold text-foreground">{value}</div>
-        {description && <p className="text-xs text-muted-foreground mt-1">{description}</p>}
+        <div className="text-3xl font-black text-foreground mb-1">{value}</div>
+        {description && <p className="text-xs font-medium text-muted-foreground mt-1">{description}</p>}
         {trend && (
-          <div className="flex items-center mt-2">
+          <div className="flex items-center mt-3 pt-3 border-t border-border">
             <span
               className={cn(
-                "text-xs font-medium",
+                "text-sm font-bold",
                 trend.isPositive ? "text-success" : "text-destructive"
               )}
             >
               {trend.isPositive ? "↑" : "↓"} {Math.abs(trend.value)}%
             </span>
-            <span className="text-xs text-muted-foreground ml-1">from last month</span>
+            <span className="text-xs font-medium text-muted-foreground ml-2">from last month</span>
           </div>
         )}
       </CardContent>

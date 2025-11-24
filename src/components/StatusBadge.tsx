@@ -29,7 +29,7 @@ const StatusBadge = ({ status, className }: StatusBadgeProps) => {
   const config = statusConfig[status];
 
   return (
-    <Badge className={cn(config.className, className)} variant="secondary">
+    <Badge className={cn(config.className, "font-bold text-sm px-3 py-1 shadow-sm", className)} variant="secondary">
       {config.label}
     </Badge>
   );
