@@ -86,42 +86,48 @@ const Alerts = () => {
   const resolvedAlerts = alerts.filter((a) => a.resolved);
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-foreground">Alerts & Notifications</h1>
-        <p className="text-muted-foreground mt-1">System alerts and action items</p>
+    <div className="space-y-8">
+      <div className="space-y-2">
+        <h1 className="text-4xl font-bold text-foreground tracking-tight">Alerts & Notifications</h1>
+        <p className="text-base text-muted-foreground">Monitor system alerts and respond to critical action items</p>
       </div>
 
       {activeAlerts.length > 0 && (
-        <div className="space-y-4">
-          <h2 className="text-xl font-semibold text-foreground">Active Alerts</h2>
+        <div className="space-y-5">
+          <div className="flex items-center gap-3">
+            <div className="h-1 w-12 bg-gradient-primary rounded-full" />
+            <h2 className="text-2xl font-bold text-foreground">Active Alerts</h2>
+            <Badge variant="destructive" className="ml-auto text-base px-3 py-1">
+              {activeAlerts.length} Active
+            </Badge>
+          </div>
           {activeAlerts.map((alert) => (
-            <Card key={alert.id}>
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <AlertCircle className="w-5 h-5 text-destructive" />
-                      <CardTitle>{alert.title}</CardTitle>
-                      <Badge className={getSeverityColor(alert.severity)}>
+            <Card key={alert.id} className="bg-gradient-card shadow-lg border-2 hover:shadow-glow transition-all duration-300">
+              <CardHeader className="pb-3">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="space-y-3 flex-1">
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <AlertCircle className="w-6 h-6 text-destructive animate-pulse" />
+                      <CardTitle className="text-xl font-bold">{alert.title}</CardTitle>
+                      <Badge className={`${getSeverityColor(alert.severity)} text-sm font-bold px-3 py-1`}>
                         {alert.severity.toUpperCase()}
                       </Badge>
+                      <Badge variant="outline" className="text-xs font-semibold">
+                        {alert.type.replace("_", " ").toUpperCase()}
+                      </Badge>
                     </div>
-                    <p className="text-sm text-muted-foreground">
-                      {new Date(alert.created_at).toLocaleString()}
+                    <p className="text-sm font-medium text-muted-foreground">
+                      Created: <span className="font-bold text-foreground">{new Date(alert.created_at).toLocaleString()}</span>
                     </p>
                   </div>
-                  <Button size="sm" onClick={() => resolveAlert(alert.id)}>
-                    <CheckCircle2 className="w-4 h-4 mr-2" />
+                  <Button size="lg" onClick={() => resolveAlert(alert.id)} className="shadow-md hover:shadow-lg transition-shadow">
+                    <CheckCircle2 className="w-5 h-5 mr-2" />
                     Resolve
                   </Button>
                 </div>
               </CardHeader>
-              <CardContent>
-                <p className="text-foreground">{alert.message}</p>
-                <Badge variant="outline" className="mt-2">
-                  {alert.type.replace("_", " ").toUpperCase()}
-                </Badge>
+              <CardContent className="pt-0">
+                <p className="text-base leading-relaxed"><span className="font-bold">Issue:</span> {alert.message}</p>
               </CardContent>
             </Card>
           ))}
@@ -129,36 +135,42 @@ const Alerts = () => {
       )}
 
       {activeAlerts.length === 0 && (
-        <Card>
-          <CardContent className="py-8 text-center">
-            <CheckCircle2 className="w-12 h-12 mx-auto text-success mb-4" />
-            <p className="text-foreground font-medium">No active alerts</p>
-            <p className="text-muted-foreground text-sm">All systems are running normally</p>
+        <Card className="bg-gradient-card shadow-lg border-2">
+          <CardContent className="py-12 text-center">
+            <CheckCircle2 className="w-16 h-16 mx-auto text-success mb-6 drop-shadow-lg" />
+            <p className="text-xl font-bold text-foreground mb-2">No Active Alerts</p>
+            <p className="text-base text-muted-foreground">All systems are running normally — no action required</p>
           </CardContent>
         </Card>
       )}
 
       {resolvedAlerts.length > 0 && (
-        <div className="space-y-4">
-          <h2 className="text-xl font-semibold text-foreground">Resolved Alerts</h2>
+        <div className="space-y-5">
+          <div className="flex items-center gap-3">
+            <div className="h-1 w-12 bg-success rounded-full" />
+            <h2 className="text-2xl font-bold text-foreground">Resolved Alerts</h2>
+            <Badge variant="secondary" className="ml-auto text-base px-3 py-1">
+              {resolvedAlerts.length} Resolved
+            </Badge>
+          </div>
           {resolvedAlerts.map((alert) => (
-            <Card key={alert.id} className="opacity-60">
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <CheckCircle2 className="w-5 h-5 text-success" />
-                      <CardTitle>{alert.title}</CardTitle>
+            <Card key={alert.id} className="opacity-70 hover:opacity-85 transition-opacity shadow-md">
+              <CardHeader className="pb-3">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="space-y-3 flex-1">
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <CheckCircle2 className="w-6 h-6 text-success" />
+                      <CardTitle className="text-xl font-bold line-through decoration-muted-foreground">{alert.title}</CardTitle>
+                      <Badge variant="secondary" className="text-sm font-bold px-3 py-1">Resolved</Badge>
                     </div>
-                    <p className="text-sm text-muted-foreground">
-                      {new Date(alert.created_at).toLocaleString()}
+                    <p className="text-sm font-medium text-muted-foreground">
+                      Created: <span className="font-bold">{new Date(alert.created_at).toLocaleString()}</span>
                     </p>
                   </div>
-                  <Badge variant="secondary">Resolved</Badge>
                 </div>
               </CardHeader>
-              <CardContent>
-                <p className="text-foreground">{alert.message}</p>
+              <CardContent className="pt-0">
+                <p className="text-base text-muted-foreground">{alert.message}</p>
               </CardContent>
             </Card>
           ))}
