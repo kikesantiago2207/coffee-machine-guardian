@@ -5,6 +5,22 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Calendar, Clock, Plus } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+
+const formSchema = z.object({
+  task_name: z.string().min(1, "Task name is required"),
+  description: z.string().optional(),
+  frequency_days: z.coerce.number().min(1, "Frequency must be at least 1 day"),
+  next_due: z.string().min(1, "Next due date is required"),
+  assigned_to: z.string().optional(),
+  estimated_duration_minutes: z.coerce.number().min(0).optional(),
+});
 
 interface Schedule {
   id: string;
@@ -22,10 +38,44 @@ const Schedule = () => {
   const { toast } = useToast();
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [loading, setLoading] = useState(true);
+  const [open, setOpen] = useState(false);
+  const [machineId, setMachineId] = useState<string | null>(null);
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      task_name: "",
+      description: "",
+      frequency_days: 30,
+      next_due: "",
+      assigned_to: "",
+      estimated_duration_minutes: 60,
+    },
+  });
 
   useEffect(() => {
-    fetchSchedules();
+    fetchMachineAndSchedules();
   }, []);
+
+  const fetchMachineAndSchedules = async () => {
+    try {
+      const { data: machineData, error: machineError } = await supabase
+        .from("machines")
+        .select("id")
+        .single();
+
+      if (machineError) throw machineError;
+      setMachineId(machineData.id);
+
+      await fetchSchedules();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
 
   const fetchSchedules = async () => {
     try {
@@ -56,6 +106,46 @@ const Schedule = () => {
     return diffDays <= 7 && diffDays > 0;
   };
 
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    if (!machineId) {
+      toast({
+        title: "Error",
+        description: "Machine not found",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const { error } = await supabase.from("preventive_schedules").insert([{
+        task_name: values.task_name,
+        description: values.description || null,
+        frequency_days: values.frequency_days,
+        next_due: values.next_due,
+        assigned_to: values.assigned_to || null,
+        estimated_duration_minutes: values.estimated_duration_minutes || null,
+        machine_id: machineId,
+      }]);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Schedule added successfully",
+      });
+
+      form.reset();
+      setOpen(false);
+      fetchSchedules();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
   if (loading) {
     return <div className="text-center py-8">Loading...</div>;
   }
@@ -67,10 +157,111 @@ const Schedule = () => {
           <h1 className="text-3xl font-bold text-foreground">Maintenance Schedule</h1>
           <p className="text-muted-foreground mt-1">Preventive maintenance calendar and tasks</p>
         </div>
-        <Button>
-          <Plus className="w-4 h-4 mr-2" />
-          Add Schedule
-        </Button>
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogTrigger asChild>
+            <Button>
+              <Plus className="w-4 h-4 mr-2" />
+              Add Schedule
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Add Preventive Maintenance Schedule</DialogTitle>
+            </DialogHeader>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="task_name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Task Name</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Description</FormLabel>
+                      <FormControl>
+                        <Textarea {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="frequency_days"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Frequency (days)</FormLabel>
+                        <FormControl>
+                          <Input type="number" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="next_due"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Next Due Date</FormLabel>
+                        <FormControl>
+                          <Input type="date" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="assigned_to"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Assigned To</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="estimated_duration_minutes"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Est. Duration (minutes)</FormLabel>
+                        <FormControl>
+                          <Input type="number" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <div className="flex justify-end gap-2">
+                  <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button type="submit">Add Schedule</Button>
+                </div>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <div className="grid gap-4">
