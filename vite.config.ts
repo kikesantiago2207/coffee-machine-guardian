@@ -3,8 +3,11 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 
+// IMPORTS CORRECTOS PARA ESM
+import fs from "fs";
+
 export default defineConfig(({ mode }) => ({
-  base: "/coffee-machine-guardian/", // 👈 IMPORTANTE para GitHub Pages
+  base: "/coffee-machine-guardian/", // Para GitHub Pages
 
   build: {
     outDir: "dist",
@@ -19,20 +22,22 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     mode === "development" && componentTagger(),
+
+    // Plugin para copiar index.html → 404.html
     {
       name: "copy-404",
       closeBundle() {
-        // Copia index.html como 404.html
-        const fs = require("fs");
-        const path = require("path");
-        const indexPath = path.resolve(__dirname, "dist/index.html");
-        const notFoundPath = path.resolve(__dirname, "dist/404.html");
+        const indexPath = path.resolve("dist/index.html");
+        const notFoundPath = path.resolve("dist/404.html");
+
         if (fs.existsSync(indexPath)) {
           fs.copyFileSync(indexPath, notFoundPath);
           console.log("✔ 404.html generado correctamente");
+        } else {
+          console.log("⚠ No se encontró dist/index.html");
         }
-      }
-    }
+      },
+    },
   ].filter(Boolean),
 
   resolve: {
