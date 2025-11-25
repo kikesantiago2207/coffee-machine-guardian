@@ -187,4 +187,4 @@ CREATE TRIGGER update_purchase_orders_updated_at BEFORE UPDATE ON public.purchas
 
 -- Insert the single coffee roaster machine
 INSERT INTO public.machines (name, model, serial_number, installation_date, status, location)
-VALUES ('Coffee Roaster', 'Model CR-2000', 'CR2000-2024-001', '2024-01-01', 'operational', 'Production Floor');
+VALUES ('Máquina Tostadora de Café', 'Torrecaf Eléctrica TN-1', 'CR2000-2020-001', '2020-12-31', 'operational', 'Production Floor');
