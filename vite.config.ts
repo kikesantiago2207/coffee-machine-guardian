@@ -3,18 +3,12 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 
-// https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
-  base: "/coffee-machine-guardian/", // 🔥 Importante para GitHub Pages
+  base: "/coffee-machine-guardian/", // 👈 IMPORTANTE para GitHub Pages
 
   build: {
-    rollupOptions: {
-      // 👇 Esto copia index.html como 404.html
-      input: {
-        main: "index.html",
-        404: "index.html",
-      }
-    }
+    outDir: "dist",
+    emptyOutDir: true,
   },
 
   server: {
@@ -24,7 +18,21 @@ export default defineConfig(({ mode }) => ({
 
   plugins: [
     react(),
-    mode === "development" && componentTagger()
+    mode === "development" && componentTagger(),
+    {
+      name: "copy-404",
+      closeBundle() {
+        // Copia index.html como 404.html
+        const fs = require("fs");
+        const path = require("path");
+        const indexPath = path.resolve(__dirname, "dist/index.html");
+        const notFoundPath = path.resolve(__dirname, "dist/404.html");
+        if (fs.existsSync(indexPath)) {
+          fs.copyFileSync(indexPath, notFoundPath);
+          console.log("✔ 404.html generado correctamente");
+        }
+      }
+    }
   ].filter(Boolean),
 
   resolve: {
